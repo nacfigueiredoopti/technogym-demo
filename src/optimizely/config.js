@@ -8,7 +8,7 @@ export const optimizelyConfig = {
 export const optimizelyClientOptions = {
   datafileOptions: {
     autoUpdate: true,
-    updateInterval: 10000, // 10 seconds for real-time demo updates
+    updateInterval: 1000, // 1 second for instant demo updates
   },
   logLevel: 'info', // Enable logging to see flag updates
 }
