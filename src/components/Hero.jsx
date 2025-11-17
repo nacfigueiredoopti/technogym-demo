@@ -1,55 +1,55 @@
-import { useDecision, OptimizelyContext } from '@optimizely/react-sdk'
+import { OptimizelyContext } from '@optimizely/react-sdk'
 import { useEffect, useState, useContext } from 'react'
 
 const Hero = () => {
-  const { optimizely } = useContext(OptimizelyContext)
-  const [refreshKey, setRefreshKey] = useState(0)
+  const { optimizely, optimizelyUser } = useContext(OptimizelyContext)
+  const [flagState, setFlagState] = useState({
+    enabled: false,
+    variationKey: null,
+    variables: {}
+  })
 
-  // Feature flag for controlling the Explore Products button behavior
-  const [decision] = useDecision('hero_cta', {}, { autoUpdate: true })
+  // Poll every second to get fresh decision from Optimizely
+  useEffect(() => {
+    const updateDecision = () => {
+      if (!optimizely || !optimizelyUser) return
+
+      const decision = optimizely.decide(optimizelyUser, 'hero_cta')
+      setFlagState({
+        enabled: decision.enabled,
+        variationKey: decision.variationKey,
+        variables: decision.variables
+      })
+    }
+
+    // Initial fetch
+    updateDecision()
+
+    // Poll every second
+    const interval = setInterval(updateDecision, 1000)
+
+    return () => clearInterval(interval)
+  }, [optimizely, optimizelyUser])
 
   // Get button configuration from feature flag variables
   // When flag is disabled, use default values
-  const buttonText = decision.enabled ? (decision.variables?.button_text || 'Explore Products') : 'Explore Products'
-  const buttonAction = decision.enabled ? (decision.variables?.button_action || 'scroll') : 'scroll'
-  const buttonColor = decision.enabled ? (decision.variables?.button_color || 'black') : 'black'
-  const externalUrl = decision.enabled ? (decision.variables?.external_url || 'https://technogym.com') : 'https://technogym.com'
-
-  // Listen for datafile updates and force re-render
-  useEffect(() => {
-    if (!optimizely) return
-
-    const handleConfigUpdate = () => {
-      console.log('📥 Datafile updated! Refreshing component...')
-      setRefreshKey(prev => prev + 1)
-    }
-
-    // Listen for config updates
-    const unsubscribe = optimizely.notificationCenter?.addNotificationListener(
-      'OPTIMIZELY_CONFIG_UPDATE',
-      handleConfigUpdate
-    )
-
-    return () => {
-      if (unsubscribe) {
-        optimizely.notificationCenter?.removeNotificationListener(unsubscribe)
-      }
-    }
-  }, [optimizely])
+  const buttonText = flagState.enabled ? (flagState.variables?.button_text || 'Explore Products') : 'Explore Products'
+  const buttonAction = flagState.enabled ? (flagState.variables?.button_action || 'scroll') : 'scroll'
+  const buttonColor = flagState.enabled ? (flagState.variables?.button_color || 'black') : 'black'
+  const externalUrl = flagState.enabled ? (flagState.variables?.external_url || 'https://technogym.com') : 'https://technogym.com'
 
   // Log flag values for debugging
   useEffect(() => {
     console.log('🚩 Feature Flag Update:', {
-      enabled: decision.enabled,
-      variationKey: decision.variationKey,
-      variables: decision.variables,
+      enabled: flagState.enabled,
+      variationKey: flagState.variationKey,
+      variables: flagState.variables,
       buttonText,
       buttonAction,
       buttonColor,
-      externalUrl,
-      refreshKey
+      externalUrl
     })
-  }, [decision, buttonText, buttonAction, buttonColor, externalUrl, refreshKey])
+  }, [flagState, buttonText, buttonAction, buttonColor, externalUrl])
 
   // Handle button click based on feature flag configuration
   const handleExploreClick = () => {
