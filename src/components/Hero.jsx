@@ -1,4 +1,5 @@
 import { useDecision } from '@optimizely/react-sdk'
+import { useEffect } from 'react'
 
 const Hero = () => {
   // Feature flag for controlling the Explore Products button behavior
@@ -9,6 +10,19 @@ const Hero = () => {
   const buttonAction = decision.variables?.button_action || 'scroll' // 'scroll', 'external', 'modal'
   const buttonColor = decision.variables?.button_color || 'black' // 'black', 'blue', 'red', 'green'
   const externalUrl = decision.variables?.external_url || 'https://technogym.com'
+
+  // Log flag values for debugging
+  useEffect(() => {
+    console.log('🚩 Feature Flag Update:', {
+      enabled: decision.enabled,
+      variationKey: decision.variationKey,
+      variables: decision.variables,
+      buttonText,
+      buttonAction,
+      buttonColor,
+      externalUrl
+    })
+  }, [decision, buttonText, buttonAction, buttonColor, externalUrl])
 
   // Handle button click based on feature flag configuration
   const handleExploreClick = () => {
