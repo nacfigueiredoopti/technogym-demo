@@ -1,4 +1,43 @@
+import { useDecision } from '@optimizely/react-sdk'
+
 const Hero = () => {
+  // Feature flag for controlling the Explore Products button behavior
+  const [decision] = useDecision('explore_products_button_variant')
+
+  // Get button configuration from feature flag variables
+  const buttonText = decision.variables?.button_text || 'Explore Products'
+  const buttonAction = decision.variables?.button_action || 'scroll' // 'scroll', 'external', 'modal'
+  const buttonColor = decision.variables?.button_color || 'black' // 'black', 'blue', 'red', 'green'
+  const externalUrl = decision.variables?.external_url || 'https://technogym.com'
+
+  // Handle button click based on feature flag configuration
+  const handleExploreClick = () => {
+    if (buttonAction === 'scroll') {
+      // Scroll to products section
+      document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })
+    } else if (buttonAction === 'external') {
+      // Navigate to external URL
+      window.open(externalUrl, '_blank')
+    } else if (buttonAction === 'modal') {
+      // Show alert (you can replace this with a modal)
+      alert('Contact us for product information!')
+    }
+  }
+
+  // Determine button styling based on feature flag
+  const getButtonClasses = () => {
+    const baseClasses = 'group relative px-8 py-4 rounded-full font-medium text-lg transition-all duration-300 transform hover:scale-105 shadow-xl'
+
+    const colorClasses = {
+      black: 'bg-black text-white hover:bg-gray-800',
+      blue: 'bg-blue-600 text-white hover:bg-blue-700',
+      red: 'bg-red-600 text-white hover:bg-red-700',
+      green: 'bg-green-600 text-white hover:bg-green-700',
+    }
+
+    return `${baseClasses} ${colorClasses[buttonColor] || colorClasses.black}`
+  }
+
   return (
     <div className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Background Pattern */}
@@ -33,8 +72,11 @@ const Hero = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button className="group relative px-8 py-4 bg-black text-white rounded-full font-medium text-lg hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 shadow-xl">
-              Explore Products
+            <button
+              onClick={handleExploreClick}
+              className={getButtonClasses()}
+            >
+              {buttonText}
               <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
             </button>
             <button className="px-8 py-4 bg-white text-black rounded-full font-medium text-lg hover:bg-gray-50 transition-all duration-300 border-2 border-gray-200 shadow-lg">
