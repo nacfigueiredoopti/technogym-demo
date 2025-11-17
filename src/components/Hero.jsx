@@ -6,10 +6,11 @@ const Hero = () => {
   const [decision] = useDecision('hero_cta')
 
   // Get button configuration from feature flag variables
-  const buttonText = decision.variables?.button_text || 'Explore Products'
-  const buttonAction = decision.variables?.button_action || 'scroll' // 'scroll', 'external', 'modal'
-  const buttonColor = decision.variables?.button_color || 'black' // 'black', 'blue', 'red', 'green'
-  const externalUrl = decision.variables?.external_url || 'https://technogym.com'
+  // When flag is disabled, use default values
+  const buttonText = decision.enabled ? (decision.variables?.button_text || 'Explore Products') : 'Explore Products'
+  const buttonAction = decision.enabled ? (decision.variables?.button_action || 'scroll') : 'scroll'
+  const buttonColor = decision.enabled ? (decision.variables?.button_color || 'black') : 'black'
+  const externalUrl = decision.enabled ? (decision.variables?.external_url || 'https://technogym.com') : 'https://technogym.com'
 
   // Log flag values for debugging
   useEffect(() => {
