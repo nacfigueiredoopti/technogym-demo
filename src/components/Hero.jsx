@@ -2,7 +2,7 @@ import { useDecision } from '@optimizely/react-sdk'
 
 const Hero = () => {
   // Feature flag for controlling the Explore Products button behavior
-  const [decision] = useDecision('explore_products_button_variant')
+  const [decision] = useDecision('hero_cta')
 
   // Get button configuration from feature flag variables
   const buttonText = decision.variables?.button_text || 'Explore Products'
