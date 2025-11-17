@@ -2,19 +2,34 @@ import { OptimizelyContext } from '@optimizely/react-sdk'
 import { useEffect, useState, useContext } from 'react'
 
 const Hero = () => {
-  const { optimizely, optimizelyUser } = useContext(OptimizelyContext)
+  const { optimizely } = useContext(OptimizelyContext)
   const [flagState, setFlagState] = useState({
     enabled: false,
     variationKey: null,
     variables: {}
   })
 
+  // Get or create a consistent user ID
+  const [userId] = useState(() => {
+    let id = localStorage.getItem('optimizely_user_id')
+    if (!id) {
+      id = 'demo_user_' + Math.random().toString(36).substring(7)
+      localStorage.setItem('optimizely_user_id', id)
+    }
+    return id
+  })
+
   // Poll every second to get fresh decision from Optimizely
   useEffect(() => {
     const updateDecision = () => {
-      if (!optimizely || !optimizelyUser) return
+      if (!optimizely) return
 
-      const decision = optimizely.decide(optimizelyUser, 'hero_cta')
+      // Create user context
+      const user = optimizely.createUserContext(userId)
+      const decision = user.decide('hero_cta')
+
+      console.log('🔄 Decision update:', decision)
+
       setFlagState({
         enabled: decision.enabled,
         variationKey: decision.variationKey,
@@ -29,7 +44,7 @@ const Hero = () => {
     const interval = setInterval(updateDecision, 1000)
 
     return () => clearInterval(interval)
-  }, [optimizely, optimizelyUser])
+  }, [optimizely, userId])
 
   // Get button configuration from feature flag variables
   // When flag is disabled, use default values
