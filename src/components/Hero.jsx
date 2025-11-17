@@ -1,9 +1,12 @@
-import { useDecision } from '@optimizely/react-sdk'
-import { useEffect } from 'react'
+import { useDecision, OptimizelyContext } from '@optimizely/react-sdk'
+import { useEffect, useState, useContext } from 'react'
 
 const Hero = () => {
+  const { optimizely } = useContext(OptimizelyContext)
+  const [refreshKey, setRefreshKey] = useState(0)
+
   // Feature flag for controlling the Explore Products button behavior
-  const [decision] = useDecision('hero_cta')
+  const [decision] = useDecision('hero_cta', {}, { autoUpdate: true })
 
   // Get button configuration from feature flag variables
   // When flag is disabled, use default values
@@ -11,6 +14,28 @@ const Hero = () => {
   const buttonAction = decision.enabled ? (decision.variables?.button_action || 'scroll') : 'scroll'
   const buttonColor = decision.enabled ? (decision.variables?.button_color || 'black') : 'black'
   const externalUrl = decision.enabled ? (decision.variables?.external_url || 'https://technogym.com') : 'https://technogym.com'
+
+  // Listen for datafile updates and force re-render
+  useEffect(() => {
+    if (!optimizely) return
+
+    const handleConfigUpdate = () => {
+      console.log('📥 Datafile updated! Refreshing component...')
+      setRefreshKey(prev => prev + 1)
+    }
+
+    // Listen for config updates
+    const unsubscribe = optimizely.notificationCenter?.addNotificationListener(
+      'OPTIMIZELY_CONFIG_UPDATE',
+      handleConfigUpdate
+    )
+
+    return () => {
+      if (unsubscribe) {
+        optimizely.notificationCenter?.removeNotificationListener(unsubscribe)
+      }
+    }
+  }, [optimizely])
 
   // Log flag values for debugging
   useEffect(() => {
@@ -21,9 +46,10 @@ const Hero = () => {
       buttonText,
       buttonAction,
       buttonColor,
-      externalUrl
+      externalUrl,
+      refreshKey
     })
-  }, [decision, buttonText, buttonAction, buttonColor, externalUrl])
+  }, [decision, buttonText, buttonAction, buttonColor, externalUrl, refreshKey])
 
   // Handle button click based on feature flag configuration
   const handleExploreClick = () => {
