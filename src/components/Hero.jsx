@@ -24,16 +24,18 @@ const Hero = () => {
     const updateDecision = () => {
       if (!optimizely) return
 
-      // Create user context
-      const user = optimizely.createUserContext(userId)
-      const decision = user.decide('hero_cta')
+      // Use SDK v3 API
+      const enabled = optimizely.isFeatureEnabled('hero_cta', userId)
+      const variables = optimizely.getFeatureVariableBoolean('hero_cta', userId) !== undefined
+        ? optimizely.getAllFeatureVariables('hero_cta', userId)
+        : {}
 
-      console.log('🔄 Decision update:', decision)
+      console.log('🔄 Decision update:', { enabled, variables })
 
       setFlagState({
-        enabled: decision.enabled,
-        variationKey: decision.variationKey,
-        variables: decision.variables
+        enabled,
+        variationKey: enabled ? 'on' : 'off',
+        variables: variables || {}
       })
     }
 
